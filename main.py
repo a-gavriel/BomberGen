@@ -1,6 +1,7 @@
+from pathfinding.core.grid import Grid
+from pathfinding.finder.a_star import AStarFinder	
 import pygame
 import random
-
 
 
 class Game:
@@ -36,9 +37,22 @@ class Game:
 				else:
 					mat2[i][j] = 0
 		return mat2
+	
+	def findpath(self, matrix, pos_bot, pos_player):
+		grid = Grid(matrix=matrix)
+
+		start = grid.node(pos_bot[0], pos_bot[1])
+		end = grid.node(pos_player[0], pos_player[1])
+
+		finder = AStarFinder()
+		path, runs = finder.find_path(start, end, grid)
+
+		print('operations:', runs, 'path length:', len(path))
+		print(grid.grid_str(path=path, start=start, end=end))
 
 
 game = Game()
 game.print_matrix(game.matrix)
 game.print_matrix(game.parse_matrix())
+game.findpath(game.parse_matrix(), (1,1), (11,8))
 
