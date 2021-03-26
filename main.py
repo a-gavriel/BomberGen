@@ -15,7 +15,7 @@ class Game:
 		self.player = (self.m//2 , self.n-2)
 		self.bot = (self.m//2 , 1)
 
-		self.scale = 20
+		self.scale = 40
 
 		self.game_height = self.m * self.scale
 		self.game_width =self.n * self.scale
@@ -49,6 +49,9 @@ class Game:
 		for i,row in enumerate(self.matrix):
 			for j,e in enumerate(row):
 				rect = pygame.rect.Rect((j * self.scale, i*self.scale, self.scale, self.scale))
+				pygame.draw.rect(self.gameDisplay,self.colors[e],rect)
+				a = pygame.rect.Rect((i * self.scale, i*self.scale, self.scale/2, self.scale/2))
+				pygame.draw.rect(self.gameDisplay,self.colors[e],a)
 				pygame.draw.rect(self.gameDisplay,self.colors[e],rect)
 		pygame.display.flip()
 
@@ -89,20 +92,15 @@ def run():
 	clock =	pygame.time.Clock()
 	crash = False
 	game = Game()
-
 	game.print_matrix(game.matrix)
 	game.print_matrix(game.parse_matrix())
-	game.findpath(game.parse_matrix(), (1,1), (11,8))
-
-
+	#game.findpath(game.parse_matrix(), (1,1), (11,8))
 	while not crash:
 		game.render()
-
+		pygame.event.get()
 		print(" new render")
-
 		clock.tick(5)
 	pygame.quit()
+
 run()
-
-
 
