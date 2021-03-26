@@ -2,7 +2,7 @@ from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder	
 import pygame
 import random
-
+from game_objects import *
 
 class Game:
 	def __init__(self):
@@ -12,10 +12,10 @@ class Game:
 		self.matrix = [[0]*self.n for i in range(self.m)]
 		self.set_map()
 
-		self.player = (self.m//2 , self.n-2)
 		self.bot = (self.m//2 , 1)
 
 		self.scale = 40
+		self.player = Player(self.m//2 , self.n-2, self.scale, self.matrix)
 
 		self.game_height = self.m * self.scale
 		self.game_width =self.n * self.scale
@@ -30,18 +30,20 @@ class Game:
 		for i in range(self.m):
 			for j in range(self.n):
 				if (random.random() < self.blocks_rate):
-					self.matrix[i][j] = 1
+					self.matrix[i][j] = 1#destructible 1
 				if not(j%2 or i%2):
-					self.matrix[i][j] = 2
+					self.matrix[i][j] = 2 #indestructible 2 
 				if (not(j and i)):
-					self.matrix[i][j] = 3
+					self.matrix[i][j] = 3 #border 3
 				if (i == (self.m -1 )) or (j == (self.n -1)):
-					self.matrix[i][j] = 3
+					self.matrix[i][j] = 3 #border 3
 
 		# player and bot initial positions
 		self.matrix[self.m//2][self.n-2] = 0
 		self.matrix[self.m//2][1] = 0
-		
+	
+	def update(self):
+		self.player.update()
 	
 	def render(self):
 
@@ -53,6 +55,8 @@ class Game:
 				a = pygame.rect.Rect((i * self.scale, i*self.scale, self.scale/2, self.scale/2))
 				pygame.draw.rect(self.gameDisplay,self.colors[e],a)
 				pygame.draw.rect(self.gameDisplay,self.colors[e],rect)
+
+		self.player.render(self.gameDisplay)
 		pygame.display.flip()
 
 
@@ -95,11 +99,31 @@ def run():
 	game.print_matrix(game.matrix)
 	game.print_matrix(game.parse_matrix())
 	#game.findpath(game.parse_matrix(), (1,1), (11,8))
+
+	
+
 	while not crash:
 		game.render()
-		pygame.event.get()
-		print(" new render")
-		clock.tick(5)
+		for event in pygame.event.get():
+				if event.type == pygame.QUIT:						
+						crash = True
+						
+		pressed = pygame.key.get_pressed()
+		
+		if pressed[pygame.K_LEFT]:
+			game.player.move(2,game.matrix)
+		if pressed[pygame.K_RIGHT]:
+			game.player.move(3,game.matrix)
+		if pressed[pygame.K_UP]:
+			game.player.move(0,game.matrix)
+		if pressed[pygame.K_DOWN]:
+			game.player.move(1,game.matrix)
+		if pressed[pygame.K_SPACE]:
+			print(" game.placebomb(player) ")
+
+	
+
+		clock.tick(10)
 	pygame.quit()
 
 run()
