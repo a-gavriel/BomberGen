@@ -23,8 +23,8 @@ class Game:
 		self.colors = {
 			0:(255,255,255),
 			1:(255,0,0),
-			2:(0,0,255),
-			3:(0,255,0)}
+			2:(150,150,150),
+			3:(50,50,50)}
 
 	def set_map(self):
 		for i in range(self.m):
@@ -37,10 +37,6 @@ class Game:
 					self.matrix[i][j] = 3 #border 3
 				if (i == (self.m -1 )) or (j == (self.n -1)):
 					self.matrix[i][j] = 3 #border 3
-
-		# player and bot initial positions
-		self.matrix[self.m//2][self.n-2] = 0
-		self.matrix[self.m//2][1] = 0
 	
 	def update(self):
 		self.player.update()
@@ -51,10 +47,7 @@ class Game:
 		for i,row in enumerate(self.matrix):
 			for j,e in enumerate(row):
 				rect = pygame.rect.Rect((j * self.scale, i*self.scale, self.scale, self.scale))
-				pygame.draw.rect(self.gameDisplay,self.colors[e],rect)
-				a = pygame.rect.Rect((i * self.scale, i*self.scale, self.scale/2, self.scale/2))
-				pygame.draw.rect(self.gameDisplay,self.colors[e],a)
-				pygame.draw.rect(self.gameDisplay,self.colors[e],rect)
+				pygame.draw.rect(self.gameDisplay,self.colors[e],rect)											
 
 		self.player.render(self.gameDisplay)
 		pygame.display.flip()
@@ -103,6 +96,7 @@ def run():
 	
 
 	while not crash:
+		game.update()
 		game.render()
 		for event in pygame.event.get():
 				if event.type == pygame.QUIT:						
@@ -111,15 +105,22 @@ def run():
 		pressed = pygame.key.get_pressed()
 		
 		if pressed[pygame.K_LEFT]:
-			game.player.move(2,game.matrix)
+			game.player.player_move(2,game.matrix)
 		if pressed[pygame.K_RIGHT]:
-			game.player.move(3,game.matrix)
+			game.player.player_move(3,game.matrix)
 		if pressed[pygame.K_UP]:
-			game.player.move(0,game.matrix)
+			game.player.player_move(0,game.matrix)
 		if pressed[pygame.K_DOWN]:
-			game.player.move(1,game.matrix)
+			game.player.player_move(1,game.matrix)
 		if pressed[pygame.K_SPACE]:
-			print(" game.placebomb(player) ")
+			game.player.place_bomb()
+		if pressed[pygame.K_1]:
+			game.player.place_bomb(1)
+		if pressed[pygame.K_2]:
+			game.player.place_bomb(2)
+		if pressed[pygame.K_3]:
+			game.player.place_bomb(3)
+		
 
 	
 
