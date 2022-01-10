@@ -1,3 +1,4 @@
+from typing import Sequence
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder	
 import pygame
@@ -6,28 +7,27 @@ from game_objects import *
 
 class Game:
 	def __init__(self):
-		self.m = 11
-		self.n = 21
-		self.blocks_rate = 0.5
-		self.matrix = [[0]*self.n for i in range(self.m)]
+		self.m : int = 11
+		self.n : int = 21
+		self.blocks_rate : float = 0.5
+		self.matrix : list = [[0]*self.n for i in range(self.m)]
 		self.set_map()
-		self.bomblist = []
-		self.bot = (self.m//2 , 1)
-
-		self.scale = 40
-		self.players = []
+		self.bomblist : list = []
+		self.scale : int = 40
+		self.players : list = []
 		self.add_players()
 		self.add_players()
-		self.game_height = self.m * self.scale
-		self.game_width =self.n * self.scale
-		self.gameDisplay = pygame.display.set_mode((self.game_width,self.game_height))
+		self.game_height : int = self.m * self.scale
+		self.game_width : int = self.n * self.scale
+		self.gameDisplay : pygame.Surface = pygame.display.set_mode((self.game_width,self.game_height))
 		self.colors = {
 			0:(255,255,255),
 			1:(255,0,0),
 			2:(150,150,150),
-			3:(50,50,50)}
+			3:(50,50,50)
+		}
 
-	def add_players(self, new_player_id = 0):
+	def add_players(self, new_player_id : int = 0) -> None:
 		if new_player_id == 0:
 			new_player_id = len(self.players)
 
@@ -40,12 +40,12 @@ class Game:
 		player_x, player_y = initial_positions[new_player_id]
 		self.players.append(Player(player_x, player_y, self.scale, self.matrix, player_id = new_player_id))
 
-	def player_alive(self, player_number):
+	def player_alive(self, player_number : int) -> bool:
 		if len(self.players) <= player_number:
 			return False
 		return self.players[player_number].alive
 
-	def keystroke(self, pressed):
+	def keystroke(self, pressed : Sequence[bool] ) -> None:
 
 		if self.player_alive(0):
 			if pressed[pygame.K_a]:
@@ -81,8 +81,9 @@ class Game:
 			if pressed[pygame.K_KP3]:
 				self.placebomb(player_id = 1, time = 3)
 
-	# Creates the different types of blocks in the map, border, indestructible and destructible blocks
-	def set_map(self):
+	
+	def set_map(self) -> None:
+		# Creates the different types of blocks in the map, border, indestructible and destructible blocks
 		for i in range(self.m):
 			for j in range(self.n):
 				if (random.random() < self.blocks_rate):
@@ -93,9 +94,9 @@ class Game:
 					self.matrix[i][j] = 3 #border 3
 				if (i == (self.m -1 )) or (j == (self.n -1)):
 					self.matrix[i][j] = 3 #border 3
-	
-	# Update the elements in the game
-	def update(self):
+		
+	def update(self) -> None:
+		# Update the elements in the game
 		for p in self.players:
 			p.update()
 		for i, bomb in enumerate(self.bomblist):
@@ -105,15 +106,15 @@ class Game:
 				self.players[bomb.owner].bomb_placed = False
 				
 
-	# Places a bomb in the game by the player "player_id" with a timeout "time"
-	def placebomb(self, player_id = 0, time = 3):		
+	def placebomb(self, player_id : int = 0, time : int = 3) -> None:
+		# Places a bomb in the game by the player "player_id" with a timeout "time"
 		if not (self.players[player_id].bomb_placed):
 			self.players[player_id].bomb_placed = True
 			new_bomb = Bomb(self.players[player_id].i, self.players[player_id].j, self.players[player_id].scale, duration = time, owner=player_id)
 			self.bomblist.append(new_bomb)
 
-	# Renders the elements in the game
-	def render(self):
+	def render(self) -> None:
+		# Renders the elements in the game
 		self.gameDisplay.fill((0,0,0))
 		for i,row in enumerate(self.matrix):
 			for j,e in enumerate(row):
@@ -128,15 +129,15 @@ class Game:
 
 
 	# ? Debug 
-	# Prints the game matrix
-	def print_matrix(self, mat):
+	def print_matrix(self, mat : list) -> None:
+		# Prints the game matrix
 		print("\nstart of matrix\n" )
 		for i in (mat):
 			print (i)
 		print("\nend of matrix\n" )
 
-	# * Converts the matrix values in order to use the pathfinding
-	def parse_matrix(self):
+	def parse_matrix(self) -> None:
+		# * Converts the matrix values in order to use the pathfinding
 		mat2 = [[0]*self.n for i in range(self.m)]
 		for  i in range(self.m):
 			for j in range(self.n):
@@ -146,7 +147,8 @@ class Game:
 					mat2[i][j] = 0
 		return mat2.copy()
 	
-	def findpath(self, mat, pos_bot, pos_player):
+	def findpath(self, pos_bot : tuple, pos_player : tuple):
+		mat = self.parse_matrix(self.matrix)
 		grid = Grid(matrix=mat)
 
 		start = grid.node(pos_bot[0], pos_bot[1])
@@ -160,7 +162,7 @@ class Game:
 
 
 
-def run():
+def run() -> None:
 	pygame.init()
 	clock =	pygame.time.Clock()
 	crash = False
