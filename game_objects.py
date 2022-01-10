@@ -36,13 +36,19 @@ class GameObject:
 class Player(GameObject):
 	def __init__(self, i, j, scale, matrix = [], player_id = 0):
 		super().__init__(i,j,scale)
-		
+		self.alive = True
 		self.player_id = player_id
 		#self.matrix = matrix
 		self.clear_around(matrix)
 		self.det_time = 20
 		self.timeout = 0
-		self.bomb = None
+		self.bomb_placed = False
+
+		player_colors = {
+			0: (255, 255, 0),
+			1: (0	 , 0, 255)	
+		}
+		self.color = player_colors[player_id]
 		
 	def clear_around(self, matrix):
 		i = self.i

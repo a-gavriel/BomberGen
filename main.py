@@ -17,6 +17,7 @@ class Game:
 		self.scale = 40
 		self.players = []
 		self.add_players()
+		self.add_players()
 		self.game_height = self.m * self.scale
 		self.game_width =self.n * self.scale
 		self.gameDisplay = pygame.display.set_mode((self.game_width,self.game_height))
@@ -26,26 +27,59 @@ class Game:
 			2:(150,150,150),
 			3:(50,50,50)}
 
-	def add_players(self):
-		self.players.append(Player(self.m//2 , self.n-2, self.scale, self.matrix, player_id = 0))
+	def add_players(self, new_player_id = 0):
+		if new_player_id == 0:
+			new_player_id = len(self.players)
+
+		initial_positions = {
+			0: (self.m//2 , self.n-2),
+			1: (self.m-2 , self.n//2),
+			2: (self.m//2 , 1),
+			3: (1 , self.n//2)
+		}
+		player_x, player_y = initial_positions[new_player_id]
+		self.players.append(Player(player_x, player_y, self.scale, self.matrix, player_id = new_player_id))
+
+	def player_alive(self, player_number):
+		if len(self.players) <= player_number:
+			return False
+		return self.players[player_number].alive
 
 	def keystroke(self, pressed):
-		if pressed[pygame.K_LEFT]:
-			self.players[0].move(2,self.matrix)
-		if pressed[pygame.K_RIGHT]:
-			self.players[0].move(3,self.matrix)
-		if pressed[pygame.K_UP]:
-			self.players[0].move(0,self.matrix)
-		if pressed[pygame.K_DOWN]:
-			self.players[0].move(1,self.matrix)
-		if pressed[pygame.K_SPACE]:
-			self.placebomb(player_id = 0, time = 3)
-		if pressed[pygame.K_1]:
-			self.placebomb(player_id = 0, time = 1)
-		if pressed[pygame.K_2]:
-			self.placebomb(player_id = 0, time = 2)
-		if pressed[pygame.K_3]:
-			self.placebomb(player_id = 0, time = 3)
+
+		if self.player_alive(0):
+			if pressed[pygame.K_a]:
+				self.players[0].move(2,self.matrix)
+			if pressed[pygame.K_d]:
+				self.players[0].move(3,self.matrix)
+			if pressed[pygame.K_w]:
+				self.players[0].move(0,self.matrix)
+			if pressed[pygame.K_s]:
+				self.players[0].move(1,self.matrix)
+			#if pressed[pygame.K_SPACE]:
+			#	self.placebomb(player_id = 0, time = 3)
+			if pressed[pygame.K_1]:
+				self.placebomb(player_id = 0, time = 1)
+			if pressed[pygame.K_2]:
+				self.placebomb(player_id = 0, time = 2)
+			if pressed[pygame.K_3]:
+				self.placebomb(player_id = 0, time = 3)
+
+		if self.player_alive(1):
+			if pressed[pygame.K_LEFT]:
+				self.players[1].move(2,self.matrix)
+			if pressed[pygame.K_RIGHT]:
+				self.players[1].move(3,self.matrix)
+			if pressed[pygame.K_UP]:
+				self.players[1].move(0,self.matrix)
+			if pressed[pygame.K_DOWN]:
+				self.players[1].move(1,self.matrix)
+			if pressed[pygame.K_KP1]:
+				self.placebomb(player_id = 1, time = 1)
+			if pressed[pygame.K_KP2]:
+				self.placebomb(player_id = 1, time = 2)
+			if pressed[pygame.K_KP3]:
+				self.placebomb(player_id = 1, time = 3)
 
 	# Creates the different types of blocks in the map, border, indestructible and destructible blocks
 	def set_map(self):
@@ -64,18 +98,18 @@ class Game:
 	def update(self):
 		for p in self.players:
 			p.update()
-		for i, b in enumerate(self.bomblist):
-			exploded = b.update(self.matrix)
+		for i, bomb in enumerate(self.bomblist):
+			exploded = bomb.update(self.matrix)
 			if exploded:
 				self.bomblist.pop(i)
-				self.players[i].bomb = 0
+				self.players[bomb.owner].bomb_placed = False
 				
 
 	# Places a bomb in the game by the player "player_id" with a timeout "time"
 	def placebomb(self, player_id = 0, time = 3):		
-		if not (self.players[player_id].bomb):
-			self.players[player_id].bomb = 1
-			new_bomb = Bomb(self.players[player_id].i, self.players[player_id].j, self.players[player_id].scale, duration = time)
+		if not (self.players[player_id].bomb_placed):
+			self.players[player_id].bomb_placed = True
+			new_bomb = Bomb(self.players[player_id].i, self.players[player_id].j, self.players[player_id].scale, duration = time, owner=player_id)
 			self.bomblist.append(new_bomb)
 
 	# Renders the elements in the game
