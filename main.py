@@ -14,7 +14,7 @@ class Game:
 		self.set_map()
 		self.bomblist : list = []
 		self.scale : int = 40
-		self.players : list = []
+		self.players : list[Player] = []
 		self.add_players()
 		self.add_players()
 		self.game_height : int = self.m * self.scale
@@ -26,6 +26,7 @@ class Game:
 			2:(150,150,150),
 			3:(50,50,50)
 		}
+		self.explosion_animations : list = []
 
 	def add_players(self, new_player_id : int = 0) -> None:
 		if new_player_id == 0:
@@ -102,6 +103,13 @@ class Game:
 		for i, bomb in enumerate(self.bomblist):
 			exploded = bomb.update(self.matrix)
 			if exploded:
+				bomb_animation = (
+					time.time() + 0.5, 
+					bomb.i,
+					bomb.j,
+					bomb.bomb_size
+				)
+				self.explosion_animations.append(bomb_animation)
 				self.bomblist.pop(i)
 				self.players[bomb.owner].bomb_placed = False
 				
@@ -110,7 +118,7 @@ class Game:
 		# Places a bomb in the game by the player "player_id" with a timeout "time"
 		if not (self.players[player_id].bomb_placed):
 			self.players[player_id].bomb_placed = True
-			new_bomb = Bomb(self.players[player_id].i, self.players[player_id].j, self.players[player_id].scale, duration = time, owner=player_id)
+			new_bomb = Bomb(self.players[player_id].i, self.players[player_id].j, self.scale, size= time - 1, duration = time, owner = player_id)
 			self.bomblist.append(new_bomb)
 
 	def render(self) -> None:
@@ -125,8 +133,22 @@ class Game:
 			p.render(self.gameDisplay)
 		for b in self.bomblist:
 			b.render(self.gameDisplay)
+
+
+		for i, animation in enumerate(self.explosion_animations):
+			now = time.time()
+			if animation[0] < now:
+				self.explosion_animations.pop(i)
+			else:
+				Bomb.render_explosion(self.gameDisplay, animation[1], animation[2], animation[3], self.scale)
+		
 		pygame.display.flip()
 
+
+	def draw_rect_alpha(self, surface, color, rect) -> None:
+		shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
+		pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
+		surface.blit(shape_surf, rect)
 
 	# ? Debug 
 	def print_matrix(self, mat : list) -> None:
