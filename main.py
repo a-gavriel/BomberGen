@@ -41,14 +41,14 @@ class Game:
 		player_x, player_y = initial_positions[new_player_id]
 		self.players.append(Player(player_x, player_y, self.scale, self.matrix, player_id = new_player_id))
 
-	def player_alive(self, player_number : int) -> bool:
+	def is_player_alive(self, player_number : int) -> bool:
 		if len(self.players) <= player_number:
 			return False
 		return self.players[player_number].alive
 
 	def keystroke(self, pressed : Sequence[bool] ) -> None:
 
-		if self.player_alive(0):
+		if self.is_player_alive(0):
 			if pressed[pygame.K_a]:
 				self.players[0].move(2,self.matrix)
 			if pressed[pygame.K_d]:
@@ -66,7 +66,7 @@ class Game:
 			if pressed[pygame.K_3]:
 				self.placebomb(player_id = 0, time = 3)
 
-		if self.player_alive(1):
+		if self.is_player_alive(1):
 			if pressed[pygame.K_LEFT]:
 				self.players[1].move(2,self.matrix)
 			if pressed[pygame.K_RIGHT]:
@@ -107,7 +107,7 @@ class Game:
 					time.time() + 0.5, 
 					bomb.i,
 					bomb.j,
-					bomb.bomb_size
+					bomb.bomb_type
 				)
 				self.explosion_animations.append(bomb_animation)
 				self.bomblist.pop(i)

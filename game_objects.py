@@ -1,7 +1,13 @@
+from typing import Sequence
 import pygame
 import time
 
 class GameObject:
+	"""
+	This is the basic GameObject class to be 
+	used as a parent to inherit from.
+	
+	"""
 	def __init__(self, i: int, j: int, scale : int):
 		self.dir_ : int = 0
 		self.i : int = i
@@ -9,9 +15,13 @@ class GameObject:
 		self.w : int = scale
 		self.h : int = scale
 		self.scale : int = scale
-		self.color : tuple = (255,255,0)		
+		self.color : tuple = (255,255,0)
+
+
 	def update(self) -> None:
 		print(f'Current pos ({self.i},{self.j})')
+
+		
 	def render(self, gameDisplay : pygame.Surface) -> None:
 		rect = pygame.rect.Rect((self.j * self.scale, self.i*self.scale, self.scale, self.scale))
 		pygame.draw.rect(gameDisplay,self.color,rect)
@@ -24,14 +34,18 @@ class GameObject:
 		dj = {0:0,1:0, 2:-1, 3:1}
 		new_i, new_j = self.i + di[dir_] , self.j + dj[dir_]
 
-		try:
+		if (len(mat) > new_i) and (new_i >= 0) and \
+			(len(mat[0]) > new_j) and (new_j >= 0):
 			if not (mat[new_i][new_j]):
 				self.i = new_i
 				self.j = new_j
-		except Exception:
+		else:
 			print('Out of bounds!')
 
 class Player(GameObject):
+
+
+
 	def __init__(self, i : int, j : int, scale : int, matrix : list = [], player_id : int = 0):
 		super().__init__(i,j,scale)
 		self.alive : bool = True
@@ -46,6 +60,9 @@ class Player(GameObject):
 			0: (255, 255, 0),
 			1: (0	 , 0, 255)	
 		}
+
+
+
 		self.color : tuple = player_colors[player_id]
 		
 	def clear_around(self, matrix : list) -> None:
@@ -88,7 +105,7 @@ class Bomb(GameObject):
 	def __init__(self, i : int, j : int, map_scale : int, size : int = 0, duration : int = 3, owner : int = 0):
 		self.owner : int = owner
 		self.map_scale : int = map_scale
-		self.bomb_size : int = size	
+		self.bomb_type : int = size	
 		super().__init__(i, j, int(Bomb.bomb_scales[size]*map_scale))		
 		self.color : tuple = Bomb.bomb_colors[size]
 		self.duration : int = duration
@@ -98,7 +115,7 @@ class Bomb(GameObject):
 	def explode(self, matrix : list) -> None:
 		print(f"Bomb exploding in {self.i},{self.j}")
 		
-		radius = self.bomb_size
+		radius = self.bomb_type
 		i = self.i
 		j = self.j
 		m = len(matrix)
