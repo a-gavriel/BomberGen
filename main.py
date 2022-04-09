@@ -26,7 +26,7 @@ class Game:
 			2:(150,150,150),
 			3:(50,50,50)
 		}
-		self.explosion_animations : list = []
+		self.explosion_animations : list[Bomb] = []
 
 	def add_players(self, new_player_id : int = 0) -> None:
 		if new_player_id == 0:
@@ -60,11 +60,11 @@ class Game:
 			#if pressed[pygame.K_SPACE]:
 			#	self.placebomb(player_id = 0, time = 3)
 			if pressed[pygame.K_1]:
-				self.placebomb(player_id = 0, time = 1)
+				self.placebomb(player_id = 0, type = 0, time = 1)
 			if pressed[pygame.K_2]:
-				self.placebomb(player_id = 0, time = 2)
+				self.placebomb(player_id = 0, type = 0, time = 2)
 			if pressed[pygame.K_3]:
-				self.placebomb(player_id = 0, time = 3)
+				self.placebomb(player_id = 0, type = 2, time = 3)
 
 		if self.is_player_alive(1):
 			if pressed[pygame.K_LEFT]:
@@ -76,11 +76,11 @@ class Game:
 			if pressed[pygame.K_DOWN]:
 				self.players[1].move(1,self.matrix)
 			if pressed[pygame.K_KP1]:
-				self.placebomb(player_id = 1, time = 1)
+				self.placebomb(player_id = 1, type = 0, time = 1)
 			if pressed[pygame.K_KP2]:
-				self.placebomb(player_id = 1, time = 2)
+				self.placebomb(player_id = 1, type = 0, time = 2)
 			if pressed[pygame.K_KP3]:
-				self.placebomb(player_id = 1, time = 3)
+				self.placebomb(player_id = 1, type = 2, time = 3)
 
 	
 	def set_map(self) -> None:
@@ -101,24 +101,19 @@ class Game:
 		for p in self.players:
 			p.update()
 		for i, bomb in enumerate(self.bomblist):
-			exploded = bomb.update(self.matrix)
+			exploded = bomb.update()
 			if exploded:
-				bomb_animation = (
-					time.time() + 0.5, 
-					bomb.i,
-					bomb.j,
-					bomb.bomb_type
-				)
-				self.explosion_animations.append(bomb_animation)
+				bomb.explode(self.matrix, self.players)
+				self.explosion_animations.append(bomb)
 				self.bomblist.pop(i)
 				self.players[bomb.owner].bomb_placed = False
 				
 
-	def placebomb(self, player_id : int = 0, time : int = 3) -> None:
+	def placebomb(self, player_id : int = 0, type : int = 0 , time : int = 3) -> None:
 		# Places a bomb in the game by the player "player_id" with a timeout "time"
 		if not (self.players[player_id].bomb_placed):
 			self.players[player_id].bomb_placed = True
-			new_bomb = Bomb(self.players[player_id].i, self.players[player_id].j, self.scale, size= time - 1, duration = time, owner = player_id)
+			new_bomb = Bomb(self.players[player_id].i, self.players[player_id].j, self.scale, type , duration = time, owner = player_id)
 			self.bomblist.append(new_bomb)
 
 	def render(self) -> None:
@@ -135,15 +130,15 @@ class Game:
 			b.render(self.gameDisplay)
 
 
-		for i, animation in enumerate(self.explosion_animations):
+		
+		for i, current_bomb in enumerate(self.explosion_animations):
 			now = time.time()
-			if animation[0] < now:
+			if (current_bomb.time_when_exploded + current_bomb.explosion_duration) < now: # Remove the explosion from the list and don't render it
 				self.explosion_animations.pop(i)
 			else:
-				Bomb.render_explosion(self.gameDisplay, animation[1], animation[2], animation[3], self.scale)
+				Bomb.render_explosion(self.gameDisplay, current_bomb, self.scale)
 		
 		pygame.display.flip()
-
 
 	def draw_rect_alpha(self, surface, color, rect) -> None:
 		shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
