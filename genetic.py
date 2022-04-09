@@ -6,29 +6,44 @@ class Stat:
   value : int = 0
   max_value : int = 0
   min_value : int = 0
-  def __init__(self, name : str, value : int, 
-      min_value : int = 1, max_value : int = 99):
-    
+
+  def __init__(self, name : str, starting_value : int, 
+      minimum_value : int = 1, maximum_value : int = 99):
+    """
+    Creates a new stat with the given <name>, <starting_value>, 
+    <minimum_value> and <maximum_value>. If the <starting_value>
+    is set to -1, it will generate a new <starting_value> by
+    selecting a random value between <minium_value> and 
+    <maximum_value>.
+
+    """
+
     self.name = name
-    self.max_value = max_value
-    self.min_value = min_value
-    if value == -1:
-      self.value = randint(min_value, max_value)
+    self.max_value = maximum_value
+    self.min_value = minimum_value
+    if starting_value == -1:
+      self.value = randint(minimum_value, maximum_value)
     else:
-      self.value = value
+      self.value = starting_value
 
   def randomize_small(self):
+    """
+    Generates a new value using the formula:
+    value = (value + random_value)//2
+    """
     self.value += randint(self.min_value, self.max_value)
     self.value // 2
 
 
   def randomize(self):
+    """
+    Generates a new value
+    """
     self.value = randint(self.min_value, self.max_value)
 
 
 class Bot:
 
-  fitness : float = 0.0
 
   def __init__(self):
     self.stats = [
@@ -42,20 +57,35 @@ class Bot:
       Stat("heal", -1),
       Stat("shield_strength", -1)
     ]
+    self.fitness : float = 0.0
 
   def __str__(self):
+    """
+    When printing a Bot, it will print each of the stats from it.
+    """
     s = ""
     for stat_i in self.stats:
       spaces = " " * (20 - len(stat_i.name))
       s += f'{stat_i.name}:{spaces}{stat_i.value}\n'
     return s
 
+
   def randomize_stats(self) -> None:
+    """
+    Randomizes all the stats from a Bot
+    """
     for stat_ in self.stats:
       stat_.value = randint(stat_.min_value, stat_.max_value)
 
   @staticmethod
   def create_child(parent1 : 'Bot', parent2 : 'Bot') -> 'Bot':
+    """
+    Creates a child Bot from the two parent bots provided.
+    The child will inherit all the atributes from the parents.
+    Each atribute will be picked at random from whom to 
+    inherit it from.
+    
+    """
     new_child = Bot()
     for stat_i, (stat_1, stat_2) in enumerate(zip(parent1.stats, parent2.stats)):
       if randint(0,1):
@@ -128,23 +158,30 @@ class Bot:
   @staticmethod
   def select_bots(Bot_list : list['Bot'], new_size : int, pick_percent : float = 0.8) -> list['Bot']:
     """
-    Performs a selection of the Bots to pass into the next generation.
+    Sorts the <Bot_list> and performs a selection of the Bots 
+    to pass into the next generation. 
+    
+    <new_size> defines the number of Bots to pass into the 
+    next generation.
+
+    <pick_percent> defines the ratio of how many Bots will be 
+    selected from the best ones (based on fitness), the remaining
+    will be taken from the worst Bots.
 
     """
     if len(Bot_list) == 0:
-      raise Exception('Bot list must not be empty')
-    if (len(Bot_list) < new_size) or (new_size <= 0):
-      raise Exception('new size must be smaller than len(Bot_list) and more than 0')
+      raise Exception('<Bot list> must not be empty')
+    if (len(Bot_list) <= new_size):
+      raise Exception('<new_size> must be smaller than len(Bot_list)')
+    if  (new_size <= 0):
+      raise Exception('<new_size> must be more than 0')
 
     Bot_list.sort(key=lambda x: x.fitness, reverse=True)
     
     new_list = []
     
-    if pick_percent >= 1.0:
-      pick_percent = rand_float()
-
-    if pick_percent < 0.5:
-      pick_percent += 0.5
+    if not(0.5 < pick_percent < 1.0):
+      raise Exception('<pick_percent> must be between 0.5 and 1')
     
     num_best_to_pick = int(pick_percent * new_size)
     num_worst_to_pick = new_size - num_best_to_pick
