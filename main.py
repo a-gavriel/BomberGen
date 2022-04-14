@@ -21,10 +21,10 @@ class Game:
 		self.game_width : int = self.n * self.scale
 		self.gameDisplay : pygame.Surface = pygame.display.set_mode((self.game_width,self.game_height))
 		self.colors = {
-			0:(255,255,255),
-			1:(255,0,0),
-			2:(150,150,150),
-			3:(50,50,50)
+			0:rgb(255,255,255),
+			1:rgb(255,0,0),
+			2:rgb(150,150,150),
+			3:rgb(50,50,50)
 		}
 		self.explosion_animations : list[Bomb] = []
 

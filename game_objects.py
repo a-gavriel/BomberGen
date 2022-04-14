@@ -2,6 +2,8 @@ from typing import Sequence
 from xmlrpc.client import Boolean
 import pygame
 import time
+from utils import *
+
 
 class GameObject:
 	
@@ -42,7 +44,7 @@ class GameObject:
 		"""
 
 		rect = pygame.rect.Rect((self.j * self.scale, self.i*self.scale, self.scale, self.scale))
-		pygame.draw.rect(gameDisplay,self.color,rect)
+		pygame.draw.rect(gameDisplay,self.color.value,rect)
 
 
 	def move(self, dir_ : int, mat : list) -> None:
@@ -78,8 +80,9 @@ class GameObject:
 class Player(GameObject):
 
 	player_colors : dict = {
-		0: (255, 255, 0),
-		1: (0	 , 0, 255)	
+		0: Color.RED_1,
+		1: Color.GREEN_1,
+		2: Color.BLUE_1
 	}
 
 	def __init__(self, i : int, j : int, scale : int, matrix : list = [], player_id : int = 0):
@@ -132,10 +135,10 @@ class Player(GameObject):
 		
 class Bomb(GameObject):
 	bomb_colors = {
-			0: (50,50,50),
-			1: (0,0,150),
-			2: (0,150,0),
-			3: (150,0,0)
+			0: rgb(50,50,50),
+			1: rgb(0,0,150),
+			2: rgb(0,150,0),
+			3: rgb(150,0,0)
 		}
 	bomb_scales = {
 		0: 0.25,
@@ -208,9 +211,9 @@ class Bomb(GameObject):
 				if (matrix[i][self.j] >= 1):
 					if (matrix[i][self.j] == 1):
 						matrix[i][self.j] = 0
-						self.explosion_details.append(i)
-					else:
-						self.explosion_details.append(i+1)
+					self.explosion_details.append(i+1)
+					#else:
+					#	self.explosion_details.append(i+1)
 					break
 			
 
@@ -222,9 +225,9 @@ class Bomb(GameObject):
 				if (matrix[i][self.j] >= 1):
 					if (matrix[i][self.j]) == 1:
 						matrix[i][self.j] = 0
-						self.explosion_details.append(i+1)
-					else:
-						self.explosion_details.append(i)
+					self.explosion_details.append(i)
+					#else:
+					#	self.explosion_details.append(i)
 					break
 
 
@@ -236,9 +239,9 @@ class Bomb(GameObject):
 				if (matrix[self.i][j] >= 1):
 					if (matrix[self.i][j] == 1):
 						matrix[self.i][j] = 0
-						self.explosion_details.append(j)
-					else:
-						self.explosion_details.append(j+1)
+					self.explosion_details.append(j+1)
+					#else:
+					#	self.explosion_details.append(j+1)
 					break
 			
 
@@ -250,9 +253,9 @@ class Bomb(GameObject):
 				if (matrix[self.i][j] >= 1):
 					if (matrix[self.i][j] == 1):
 						matrix[self.i][j] = 0
-						self.explosion_details.append(j+1)
-					else:
-						self.explosion_details.append(j)
+					self.explosion_details.append(j)
+					#else:
+					#	self.explosion_details.append(j)
 					break
 			
 			
@@ -285,13 +288,16 @@ class Bomb(GameObject):
 		"""
 		color_4 = *(Bomb.bomb_colors[exploded_bomb.bomb_type]), 127  # Create a tuple of 4 values reusing the 3 from the bomb colors
 
+		OFFSET = map_scale // 3
+		OFFSET_HALF = OFFSET // 2
+		SURFACE_LENGTH = map_scale + OFFSET
+		
+
 		if (exploded_bomb.bomb_type == 0):
 			# Destroy any destructible tiles in the corresponding radius
-			surface_length = int(map_scale*1.5)
-			OFFSET = map_scale // 2
-			rect = (exploded_bomb.j*map_scale + OFFSET - surface_length//2, 
-							exploded_bomb.i*map_scale + OFFSET - surface_length//2, 
-							surface_length, surface_length)
+			rect = (exploded_bomb.j*map_scale - OFFSET_HALF, 
+							exploded_bomb.i*map_scale - OFFSET_HALF, 
+							SURFACE_LENGTH, SURFACE_LENGTH)
 			
 			shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
 			pygame.draw.rect(shape_surf, color_4, shape_surf.get_rect())
@@ -299,15 +305,15 @@ class Bomb(GameObject):
 
 		
 		elif (exploded_bomb.bomb_type == 2):
-			height_1 = (exploded_bomb.explosion_details[1] - exploded_bomb.explosion_details[0])*map_scale
-			rect_1 = (exploded_bomb.j*map_scale, 
-						exploded_bomb.explosion_details[0]*map_scale, 
-						map_scale, height_1)
+			height_1 = (exploded_bomb.explosion_details[1] - exploded_bomb.explosion_details[0] )*map_scale
+			rect_1 = (exploded_bomb.j*map_scale - OFFSET_HALF, 
+						exploded_bomb.explosion_details[0]*map_scale - OFFSET_HALF, 
+						SURFACE_LENGTH, height_1 + OFFSET)
 			
-			width_2 = (exploded_bomb.explosion_details[3] - exploded_bomb.explosion_details[2])*map_scale
-			rect_2 = (exploded_bomb.explosion_details[2]*map_scale, 
-						exploded_bomb.i*map_scale,
-						width_2, map_scale)
+			width_2 = (exploded_bomb.explosion_details[3] - exploded_bomb.explosion_details[2] )*map_scale
+			rect_2 = (exploded_bomb.explosion_details[2]*map_scale - OFFSET_HALF, 
+						exploded_bomb.i*map_scale - OFFSET_HALF,
+						width_2 + OFFSET, SURFACE_LENGTH)
 	
 			shape_surf = pygame.Surface(pygame.Rect(rect_1).size, pygame.SRCALPHA)
 			pygame.draw.rect(shape_surf, color_4, shape_surf.get_rect())
