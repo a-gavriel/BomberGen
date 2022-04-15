@@ -16,3 +16,7 @@ class Color(Enum):
   BLUE_1 = rgb(26,26,91)
   BLUE_2 = rgb(45,45,161)
   BLUE_3 = rgb(55,55,229)
+
+  PURPLE_1 = rgb(144,43,200)
+
+  WHITE = rgb(255,255,255)

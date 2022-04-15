@@ -29,7 +29,11 @@ class Game:
 		self.explosion_animations : list[Bomb] = []
 
 	def add_players(self, new_player_id : int = 0) -> None:
-		if new_player_id == 0:
+
+		if len(self.players) >= 4:
+			raise Exception("Can create player, there should not be more than 4 players")
+
+		if new_player_id == 0: # If no player_id is given, set it to the next one not assigned
 			new_player_id = len(self.players)
 
 		initial_positions = {
@@ -103,7 +107,9 @@ class Game:
 		for i, bomb in enumerate(self.bomblist):
 			exploded = bomb.update()
 			if exploded:
-				bomb.explode(self.matrix, self.players)
+				players_hit : list[Player] = bomb.explode(self.matrix, self.players)
+				for p in players_hit:
+					p.take_damage()
 				self.explosion_animations.append(bomb)
 				self.bomblist.pop(i)
 				self.players[bomb.owner].bomb_placed = False
