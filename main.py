@@ -28,6 +28,23 @@ class Game:
 		}
 		self.explosion_animations : list[Bomb] = []
 
+	def check_winner(self) -> int:
+		"""
+		Checks if there is a winner by checking if there is only 1 player left.
+		Return -1 if no winner
+		Returns player_id if there is a winner
+		"""
+		one_player_alive = -1
+		for player in self.players:
+			if player.alive == True:
+				if one_player_alive != -1:
+					return -1
+				else:
+					one_player_alive = player.player_id
+
+		return one_player_alive
+
+
 	def add_players(self, new_player_id : int = 0) -> None:
 
 		if len(self.players) >= 4:
@@ -113,7 +130,14 @@ class Game:
 				self.explosion_animations.append(bomb)
 				self.bomblist.pop(i)
 				self.players[bomb.owner].bomb_placed = False
-				
+		
+		winner : int = self.check_winner()
+		if winner != -1:
+			print(f"Congratulations player {winner}!")
+			self.players[winner].victories += 1
+			return True
+		else:
+			return False
 
 	def placebomb(self, player_id : int = 0, type : int = 0 , time : int = 3) -> None:
 		# Places a bomb in the game by the player "player_id" with a timeout "time"
@@ -190,11 +214,22 @@ def run() -> None:
 	clock =	pygame.time.Clock()
 	crash = False
 	game = Game()
-	game.print_matrix(game.matrix)
-	game.print_matrix(game.parse_matrix())
+	#game.print_matrix(game.matrix)
+	#game.print_matrix(game.parse_matrix())
 	#game.findpath(game.parse_matrix(), (1,1), (11,8))
+	exiting_game : Boolean = False
+	finishing_animations : Boolean = False
+	finishing_animations_timer : float = 0.0
 	while not crash:
-		game.update()
+		if not exiting_game:
+			exiting_game = game.update()
+		else:
+			if not finishing_animations:
+				finishing_animations = True
+				finishing_animations_timer = time.time() + 2.0
+			if finishing_animations and (finishing_animations_timer < time.time()):
+				break
+
 		game.render()
 		for event in pygame.event.get():
 				if event.type == pygame.QUIT:						

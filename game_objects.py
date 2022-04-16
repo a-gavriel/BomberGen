@@ -91,6 +91,7 @@ class Player(GameObject):
 		self.alive : bool = True
 		self.player_id : int = player_id
 		self.lives : int = 3
+		self.victories : int = 0
 		#self.matrix = matrix
 		self.clear_around(matrix)
 		self.det_time : int = 20
@@ -205,7 +206,7 @@ class Bomb(GameObject):
 		"""
 
 
-		print(f"Bomb exploding in {self.i},{self.j}")
+		#print(f"Bomb exploding in {self.i},{self.j}")
 		
 		self.time_when_exploded = time.time()
 
