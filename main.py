@@ -6,6 +6,12 @@ import random
 from game_objects import *
 
 class Game:
+
+	NO_BLOCK = 0	
+	DESTRUCTIBLE_BLOCK = 1
+	INDESTRUCTIBLE_BLOCK = 2
+	BORDER_BLOCK = 3
+
 	def __init__(self):
 		self.m : int = 11
 		self.n : int = 21
@@ -46,7 +52,9 @@ class Game:
 
 
 	def add_players(self, new_player_id : int = 0) -> None:
-
+		"""
+		Adds a new player to the players list
+		"""
 		if len(self.players) >= 4:
 			raise Exception("Can create player, there should not be more than 4 players")
 
@@ -63,12 +71,18 @@ class Game:
 		self.players.append(Player(player_x, player_y, self.scale, self.matrix, player_id = new_player_id))
 
 	def is_player_alive(self, player_number : int) -> bool:
+		"""
+		Checks if the given player is alive
+		"""
 		if len(self.players) <= player_number:
 			return False
 		return self.players[player_number].alive
 
 	def keystroke(self, pressed : Sequence[bool] ) -> None:
-
+		"""
+		Process the keystrokes pressed in the game, 
+		by moving the different players or opening menus, etc
+		"""
 		if self.is_player_alive(0):
 			if pressed[pygame.K_a]:
 				self.players[0].move(2,self.matrix)
@@ -105,20 +119,30 @@ class Game:
 
 	
 	def set_map(self) -> None:
-		# Creates the different types of blocks in the map, border, indestructible and destructible blocks
+		"""
+		Creates the different types of blocks in the map, 
+		border, indestructible and destructible blocks
+		"""
 		for i in range(self.m):
 			for j in range(self.n):
 				if (random.random() < self.blocks_rate):
-					self.matrix[i][j] = 1#destructible 1
+					self.matrix[i][j] = Game.DESTRUCTIBLE_BLOCK
 				if not(j%2 or i%2):
-					self.matrix[i][j] = 2 #indestructible 2 
+					self.matrix[i][j] = Game.INDESTRUCTIBLE_BLOCK
 				if (not(j and i)):
-					self.matrix[i][j] = 3 #border 3
+					self.matrix[i][j] = Game.BORDER_BLOCK
 				if (i == (self.m -1 )) or (j == (self.n -1)):
-					self.matrix[i][j] = 3 #border 3
+					self.matrix[i][j] = Game.BORDER_BLOCK
 		
 	def update(self) -> None:
-		# Update the elements in the game
+		"""
+		Update the elements in the game
+		"""
+
+		run_alg = False
+		if run_alg:
+			self.findpath(self.players[0], self.players[1])
+
 		for p in self.players:
 			p.update()
 		for i, bomb in enumerate(self.bomblist):
@@ -140,14 +164,18 @@ class Game:
 			return False
 
 	def placebomb(self, player_id : int = 0, type : int = 0 , time : int = 3) -> None:
-		# Places a bomb in the game by the player "player_id" with a timeout "time"
+		"""
+		Places a bomb in the game by the player "player_id" with a timeout "time"
+		"""
 		if not (self.players[player_id].bomb_placed):
 			self.players[player_id].bomb_placed = True
 			new_bomb = Bomb(self.players[player_id].i, self.players[player_id].j, self.scale, type , duration = time, owner = player_id)
 			self.bomblist.append(new_bomb)
 
 	def render(self) -> None:
-		# Renders the elements in the game
+		"""
+		Renders the elements in the game
+		"""
 		self.gameDisplay.fill((0,0,0))
 		for i,row in enumerate(self.matrix):
 			for j,e in enumerate(row):
@@ -170,42 +198,49 @@ class Game:
 		
 		pygame.display.flip()
 
-	def draw_rect_alpha(self, surface, color, rect) -> None:
-		shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
-		pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
-		surface.blit(shape_surf, rect)
 
-	# ? Debug 
+	
 	def print_matrix(self, mat : list) -> None:
-		# Prints the game matrix
+		"""
+		Prints the game matrix
+		"""
 		print("\nstart of matrix\n" )
 		for i in (mat):
 			print (i)
 		print("\nend of matrix\n" )
 
 	def parse_matrix(self) -> None:
-		# * Converts the matrix values in order to use the pathfinding
+		"""
+		Converts the matrix values in order to use the pathfinding
+		"""
 		mat2 = [[0]*self.n for i in range(self.m)]
 		for  i in range(self.m):
 			for j in range(self.n):
-				if (self.matrix[i][j] < 2):
-					mat2[i][j] = 1
-				else:
-					mat2[i][j] = 0
-		return mat2.copy()
+				if (self.matrix[i][j] == Game.DESTRUCTIBLE_BLOCK):
+					mat2[i][j] = 4	#Weigth of passing through a block
+				elif (self.matrix[i][j] == Game.NO_BLOCK):
+					mat2[i][j] = 1	#Smallest value for pathfind
+				elif (self.matrix[i][j] == Game.INDESTRUCTIBLE_BLOCK) \
+						or (self.matrix[i][j] == Game.BORDER_BLOCK):
+					mat2[i][j] = -1	#Blocked path
+		return mat2
 	
-	def findpath(self, pos_bot : tuple, pos_player : tuple):
-		mat = self.parse_matrix(self.matrix)
+	def findpath(self, start_player : Player, end_player : Player) -> None:
+		start_pos = start_player.j, start_player.i
+		end_pos = end_player.j, end_player.i
+		mat = self.parse_matrix()
 		grid = Grid(matrix=mat)
 
-		start = grid.node(pos_bot[0], pos_bot[1])
-		end = grid.node(pos_player[0], pos_player[1])
+		start = grid.node(start_pos[0], start_pos[1])
+		end = grid.node(end_pos[0], end_pos[1])
 
 		finder = AStarFinder()
 		path, runs = finder.find_path(start, end, grid)
 
 		print('operations:', runs, 'path length:', len(path))
 		print(grid.grid_str(path=path, start=start, end=end))
+
+		return 
 
 
 
