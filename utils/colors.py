@@ -5,6 +5,7 @@ def rgb(r,g,b):
 
 
 class Color(Enum):
+  RED = rgb(255,0,0)
   RED_1 = rgb(91,26,26)
   RED_2 = rgb(161,45,45)
   RED_3 = rgb(229,55,55)
@@ -20,3 +21,7 @@ class Color(Enum):
   PURPLE_1 = rgb(144,43,200)
 
   WHITE = rgb(255,255,255)
+
+  GREY_HALF = rgb(150,150,150)
+  GREY_DARK = rgb(50,50,50)
+  

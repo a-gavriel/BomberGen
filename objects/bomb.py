@@ -1,171 +1,10 @@
-from typing import Sequence
-from xmlrpc.client import Boolean
-import pygame
+from objects.game_objects import GameObject
+from utils.colors import rgb
+from objects.player import Player
+
 import time
-from utils import *
+import pygame
 
-
-class GameObject:
-	
-	def __init__(self, i: int, j: int, scale : int):
-		"""
-		This is the basic GameObject class to be 
-		used as a parent to inherit from. 
-		
-		<i>: position in the Y axis
-
-		<j>: position in the X axis
-
-		<scale>: size of the object in each 
-		dimention. Used for rendering
-		
-		default color will be set to Yellow
-
-		"""
-		self.dir_ : int = 0
-		self.i : int = i
-		self.j : int = j
-		self.w : int = scale
-		self.h : int = scale
-		self.scale : int = scale
-		self.color : tuple = (255,255,0) # Default color
-
-
-	def update(self) -> None:
-		"""
-		Default update function will only print the object coordinates
-		"""
-		print(f'Current pos ({self.i},{self.j})')
-
-		
-	def render(self, gameDisplay : pygame.Surface) -> None:
-		"""
-		Default render will draw a rectange of sides <scale> in (j,i).
-		"""
-
-		rect = pygame.rect.Rect((self.j * self.scale, self.i*self.scale, self.scale, self.scale))
-		pygame.draw.rect(gameDisplay,self.color.value,rect)
-
-
-	def move(self, dir_ : int, mat : list) -> None:
-		"""
-		Default move will move the object to 1 space 
-		of the provided direction <dir_> in the 
-		matrix <mat> given.
-
-		dir_:
-			0:	up
-			1:	down
-			2:	left
-			3:	right
-
-		"""
-
-		self.dir_ = dir_
-		#print(f'Current pos ({self.i},{self.j})')
-		di = {0:-1, 1:1, 2:0, 3:0}
-		dj = {0:0,1:0, 2:-1, 3:1}
-		new_i, new_j = self.i + di[dir_] , self.j + dj[dir_]
-
-		if (len(mat) > new_i) and (new_i >= 0) and \
-			(len(mat[0]) > new_j) and (new_j >= 0):
-			if not (mat[new_i][new_j]):
-				self.i = new_i
-				self.j = new_j
-		else:
-			print('Out of bounds!')
-
-
-
-class Player(GameObject):
-
-	player_colors : dict = {
-		0: Color.RED_1,
-		1: Color.GREEN_1,
-		2: Color.BLUE_1,
-		3: Color.PURPLE_1
-	}
-
-	def __init__(self, i : int, j : int, scale : int, matrix : list = [], player_id : int = 0):
-		super().__init__(i,j,scale)
-		self.alive : bool = True
-		self.player_id : int = player_id
-		self.lives : int = 3
-		self.victories : int = 0
-		#self.matrix = matrix
-		self.clear_around(matrix)
-		self.det_time : int = 20
-		self.timeout : int = 0
-		self.bomb_placed : bool = False
-		self.hit_timer : float = 0.0
-		self.was_hit : bool = False
-		self.hit_animation_duration : float = 0.5
-
-
-		self.color : tuple = Player.player_colors[player_id]
-		
-	def clear_around(self, matrix : list) -> None:
-		"""
-		Clear all the blocks in the matrix where the Player is
-		located and in the surrounding ortogonal spaces.
-		
-		"""
-		i = self.i
-		j = self.j
-		matrix[i][j] = 0
-		if matrix[i-1][j] == 1:
-			matrix[i-1][j] = 0
-		if matrix[i+1][j] == 1:
-			matrix[i+1][j] = 0
-		if matrix[i][j-1] == 1:
-			matrix[i][j-1] = 0
-		if matrix[i][j+1] == 1:
-			matrix[i][j+1] = 0
-
-
-	def take_damage(self):
-		self.lives -= 1
-		self.alive = self.lives > 0
-		self.was_hit = True
-		self.hit_timer = time.time() + self.hit_animation_duration
-		print(f"Player {self.player_id} took damage, current lives: {self.lives}")
-
-	def update(self) -> None:
-		"""
-		Checks if the hit timer is over
-		"""
-		if self.was_hit and self.hit_timer < time.time():
-			self.was_hit = False
-			self.hit_timer = 0.0
-			
-
-	def render(self, gameDisplay : pygame.Surface) -> None:
-		"""
-		Renders the Player over the <gameDisplay> as a circle if it's alive.
-		If player is dead renders a small rectangle.
-		If player just took damage, renders player with color white intermittently.
-		
-		"""
-
-		if self.alive:
-			radius = self.scale // 2
-			center = self.j * self.scale + radius, self.i*self.scale + radius
-			SECONDS_TIME_10 = int(time.time() * 10)
-			ITERMITENT_RATE = 4
-			if self.was_hit and (SECONDS_TIME_10 % ITERMITENT_RATE >= (ITERMITENT_RATE//2)):
-				pygame.draw.circle(gameDisplay, Color.WHITE.value, center, radius)	
-			else:
-				pygame.draw.circle(gameDisplay, self.color.value, center, radius)
-
-		else:			
-			offset = self.scale // 2
-			offset_half = offset // 2
-			rect = pygame.rect.Rect((self.j * self.scale + offset_half, self.i*self.scale + offset, self.scale - offset, self.scale - offset))
-			pygame.draw.rect(gameDisplay, self.color.value, rect)
-
-	
-
-		
 class Bomb(GameObject):
 	bomb_colors = {
 			0: rgb(50,50,50),
@@ -294,7 +133,7 @@ class Bomb(GameObject):
 		return players_hit
 
 
-	def update(self) -> Boolean:
+	def update(self) -> bool:
 			"""
 			Check if the bomb should explode, based on the time it was placed and the timeout set to it.
 			"""
@@ -357,14 +196,3 @@ class Bomb(GameObject):
 
 			
 			
-
-
-
-
-
-
-
-		
-
-if __name__ == "__main__":
-	raise Exception('--- Please run main.py ---')
