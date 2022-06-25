@@ -1,11 +1,12 @@
 from random import randint
 from random import random as rand_float
+from objects import player, bomb
 
 class Stat:
   name : str = ""
   value : int = 0
-  max_value : int = 0
   min_value : int = 0
+  max_value : int = 0
 
   def __init__(self, name : str, starting_value : int, 
       minimum_value : int = 1, maximum_value : int = 99):
@@ -26,7 +27,7 @@ class Stat:
     else:
       self.value = starting_value
 
-  def randomize_small(self):
+  def randomize_small(self) -> None:
     """
     Generates a new value using the formula:
     value = (value + random_value)//2
@@ -34,32 +35,43 @@ class Stat:
     self.value += randint(self.min_value, self.max_value)
     self.value // 2
 
+    return
 
-  def randomize(self):
+
+  def randomize(self) -> None:
     """
     Generates a new value
     """
     self.value = randint(self.min_value, self.max_value)
+    
+    return
 
 
-class Bot:
+class AI():
 
 
-  def __init__(self):
+  def __init__(game_matrix : list[list[int]], player_list : list[Player],  bomb_list : list[Bomb]):
+
+    
+    
     self.stats = [
       Stat("shoot_distance", -1),
-      Stat("lives", -1, 1, 3),
       Stat("speed", -1),
-      Stat("evade", -1),
-      Stat("hide", -1),
-      Stat("place_bomb1", -1),
-      Stat("place_bomb2", -1),
-      Stat("heal", -1),
+      Stat("action_evade", -1),
+      Stat("action_hide", -1),
+      Stat("action_place_bomb1", -1),
+      Stat("action_place_bomb2", -1),
+      #Stat("action_heal", -1),
       Stat("shield_strength", -1)
+      
     ]
-    self.fitness : float = 0.0
+    
 
-  def __str__(self):
+
+    self.normalized_fitness : float = 0.0
+    self.accumulated_fitness : float = 0.0
+
+  def __str__(self) -> str:
     """
     When printing a Bot, it will print each of the stats from it.
     """
@@ -86,17 +98,18 @@ class Bot:
     inherit it from.
     
     """
-    new_child = Bot()
+    new_child = parent1
     for stat_i, (stat_1, stat_2) in enumerate(zip(parent1.stats, parent2.stats)):
       if randint(0,1):
-        new_child.stats[stat_i] = stat_1
+        #new_child.stats[stat_i] = stat_1
+        pass #new_child already has parent1 stat
       else:
         new_child.stats[stat_i] = stat_2
 
     return new_child
 
   
-  def mutate_one_small(self):
+  def mutate_one_small(self) -> None:
     """
     Performs a small mutation in a random stat.
     Small mutation:
@@ -105,7 +118,9 @@ class Bot:
     stat_i = randint(0, len(self.stats) - 1)
     self.stats[stat_i].randomize_small()
 
-  def mutate_one(self):
+    return
+
+  def mutate_one(self) -> None:
     """
     Performs a normal mutation in a random stat.
     Normal mutation:
@@ -114,9 +129,11 @@ class Bot:
     stat_i = randint(0, len(self.stats) - 1)
     self.stats[stat_i].randomize()
 
+    return
+
 
   
-  def mutate_many_small(self, mutate_percent = 0.2):
+  def mutate_many_small(self, mutate_percent = 0.2) -> None:
     """
     Performs a small mutation in a <mutate_percent> of the stats.
     Small mutation:
@@ -125,10 +142,12 @@ class Bot:
     for stat_ in self.stats:
       if rand_float() < mutate_percent:
         stat_.randomize_small()
+    
+    return
 
 
 
-  def mutate_many(self, mutate_percent = 0.2):
+  def mutate_many(self, mutate_percent = 0.2) -> None:
     """
     Performs a small mutation in a <mutate_percent> of the stats.
     Normal mutation:
@@ -138,12 +157,16 @@ class Bot:
       if rand_float() < mutate_percent:
         stat_.randomize()
 
+    return 
+
   def calculate_fitness(self) -> None:
     """
     Calculates the fitness of a Bot
     # TODO: Currently only a random value
     """
     self.fitness = rand_float()
+
+    return
 
 
   @staticmethod
@@ -156,7 +179,7 @@ class Bot:
 
 
   @staticmethod
-  def select_bots(Bot_list : list['Bot'], new_size : int, pick_percent : float = 0.8) -> list['Bot']:
+  def select_bots_m1(Bot_list : list['Bot'], new_size : int, pick_percent : float = 0.8) -> list['Bot']:
     """
     Sorts the <Bot_list> and performs a selection of the Bots 
     to pass into the next generation. 
@@ -178,7 +201,7 @@ class Bot:
 
     Bot_list.sort(key=lambda x: x.fitness, reverse=True)
     
-    new_list = []
+    new_list : list['Bot'] = []
     
     if not(0.5 < pick_percent < 1.0):
       raise Exception('<pick_percent> must be between 0.5 and 1')

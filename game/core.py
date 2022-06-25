@@ -5,6 +5,7 @@ from typing import Sequence
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder	
 
+from objects.game_objects import GameObject
 from objects.player import Player
 from objects.bomb import Bomb
 from utils.colors import Color
@@ -29,9 +30,10 @@ class Game:
 		self.blocks_rate : float = 0.5
 		self.matrix : list = [[0]*self.n for i in range(self.m)]
 		self.set_map()
-		self.bomblist : list = []
+		self.bomblist : list[Bomb] = []
 		self.scale : int = 40
 		self.players : list[Player] = []
+		self.add_players()
 		self.add_players()
 		self.add_players()
 
@@ -88,7 +90,9 @@ class Game:
 			3: (1 , self.n//2)
 		}
 		player_x, player_y = initial_positions[new_player_id]
-		self.players.append(Player(player_x, player_y, self.scale, self.matrix, player_id = new_player_id))
+		self.players.append(Player(player_x, player_y, self.scale, self.matrix, new_player_id))
+
+		return 
 
 	def is_player_alive(self, player_number : int) -> bool:
 		"""
@@ -277,8 +281,21 @@ class Game:
 		return mat2
 	
 	def findpath(self, start_player : Player, end_player : Player) -> None:
-		start_pos = start_player.j, start_player.i
-		end_pos = end_player.j, end_player.i
+		if isinstance(start_player, GameObject):
+			start_pos = start_player.j, start_player.i
+		elif isinstance(start_player, tuple) and (len(start_player) == 2):
+			start_pos = start_player[0], start_player[1]
+		else:
+			raise Exception("Error in pathfinding, <start player>'s type not recognized")
+
+		if isinstance(end_player, GameObject):
+			end_pos = end_player.j, end_player.i
+		elif isinstance(end_player, tuple) and (len(end_player) == 2):
+			end_pos = end_player[0], end_player[1]
+		else:
+			raise Exception("Error in pathfinding, <end player>'s type not recognized")
+
+
 		mat = self.parse_matrix()
 		grid = Grid(matrix=mat)
 

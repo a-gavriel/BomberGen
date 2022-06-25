@@ -50,12 +50,16 @@ class Player(GameObject):
 			matrix[i][j+1] = 0
 
 
-	def take_damage(self):
+	def take_damage(self) -> bool:
+		if self.lives <= 0:
+			return False
+			
 		self.lives -= 1
 		self.alive = self.lives > 0
 		self.was_hit = True
 		self.hit_timer = time.time() + self.hit_animation_duration
 		print(f"Player {self.player_id} took damage, current lives: {self.lives}")
+		return True
 
 	def update(self) -> None:
 		"""
