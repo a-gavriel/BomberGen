@@ -17,7 +17,13 @@ class Game:
 	INDESTRUCTIBLE_BLOCK = 2
 	BORDER_BLOCK = 3
 
-	def __init__(self):
+	def __init__(self, past_player_stats = None):
+		pygame.font.init() # you have to call this at the start, 
+                   # if you want to use this module.
+		self.my_font = pygame.font.SysFont('Arial', 25)
+
+		
+
 		self.m : int = 11
 		self.n : int = 21
 		self.blocks_rate : float = 0.5
@@ -28,9 +34,18 @@ class Game:
 		self.players : list[Player] = []
 		self.add_players()
 		self.add_players()
+
+		if past_player_stats is not None:
+			for i, stat in enumerate(past_player_stats):
+				self.players[i].victories = stat
+				
 		self.game_height : int = self.m * self.scale
 		self.game_width : int = self.n * self.scale
-		self.gameDisplay : pygame.Surface = pygame.display.set_mode((self.game_width,self.game_height))
+		self.stats_display_height = self.scale
+
+		self.game_stats_display : pygame.Surface = pygame.Surface((self.game_width, self.stats_display_height))
+		self.game_display : pygame.Surface = pygame.Surface((self.game_width,self.game_height))
+		self.full_display : pygame.Surface = pygame.display.set_mode((self.game_width,self.game_height + self.stats_display_height))
 		self.colors = {
 			0: Color.WHITE.value ,
 			1: Color.RED.value,
@@ -61,7 +76,7 @@ class Game:
 		Adds a new player to the players list
 		"""
 		if len(self.players) >= 4:
-			raise Exception("Can create player, there should not be more than 4 players")
+			raise Exception("Can't create player, there should not be more than 4 players")
 
 		if new_player_id == 0: # If no player_id is given, set it to the next one not assigned
 			new_player_id = len(self.players)
@@ -177,20 +192,48 @@ class Game:
 			new_bomb = Bomb(self.players[player_id].i, self.players[player_id].j, self.scale, type , duration = time, owner = player_id)
 			self.bomblist.append(new_bomb)
 
+
+	def render_stats(self) -> None:
+		"""
+		Renders the stats for each player, lives and victories
+		"""
+
+		text_to_write = ""
+		for i,p in enumerate(self.players):
+			text_to_write = f' P{i+1}:{p.lives} / V{p.victories}'
+			text_surface = self.my_font.render(text_to_write, False, (255, 255, 255))
+			if i == 0:
+				self.full_display.blit(text_surface,(0,0))
+			elif i == 1:
+				self.full_display.blit(text_surface,(self.game_width//4,0))
+			elif i == 2: 
+				self.full_display.blit(text_surface,(self.game_width//2,0))
+			elif i == 3: 
+				self.full_display.blit(text_surface,(self.game_width//4*3,0))
+	
+
+		
+		
+
+		return None
+
+
 	def render(self) -> None:
 		"""
 		Renders the elements in the game
 		"""
-		self.gameDisplay.fill((0,0,0))
+		self.game_display.fill((0,0,0))
+		self.full_display.fill((0,0,0))
+
 		for i,row in enumerate(self.matrix):
 			for j,e in enumerate(row):
 				rect = pygame.rect.Rect((j * self.scale, i*self.scale, self.scale, self.scale))
-				pygame.draw.rect(self.gameDisplay,self.colors[e], rect)											
+				pygame.draw.rect(self.game_display,self.colors[e], rect)											
 
 		for p in self.players:
-			p.render(self.gameDisplay)
+			p.render(self.game_display)
 		for b in self.bomblist:
-			b.render(self.gameDisplay)
+			b.render(self.game_display)
 
 
 		
@@ -199,8 +242,11 @@ class Game:
 			if (current_bomb.time_when_exploded + current_bomb.explosion_duration) < now: # Remove the explosion from the list and don't render it
 				self.explosion_animations.pop(i)
 			else:
-				Bomb.render_explosion(self.gameDisplay, current_bomb, self.scale)
+				Bomb.render_explosion(self.game_display, current_bomb, self.scale)
 		
+		
+		self.full_display.blit(self.game_display, (0, self.stats_display_height))
+		self.render_stats()
 		pygame.display.flip()
 
 
